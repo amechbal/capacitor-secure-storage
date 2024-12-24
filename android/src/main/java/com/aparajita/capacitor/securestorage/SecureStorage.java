@@ -22,6 +22,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import org.json.JSONArray;
 
 interface StorageOp {
@@ -38,6 +39,12 @@ public class SecureStorage extends Plugin {
     "WSSecureStorageSharedPreferences";
   private static final Character DATA_IV_SEPARATOR = '\u0010';
   private static final int BASE64_FLAGS = Base64.NO_PADDING + Base64.NO_WRAP;
+
+  // Old storage related stuff
+  private static final String OLD_CIPHER_TRANSFORMATION =
+    "AES/CBC/PKCS7Padding";
+  private static final String OLD_SHARED_PREFERENCES = "FingerSPref";
+  private static final String OLD_KEY_ID = "CordovaTouchPlugin";
 
   private KeyStore keyStore;
 
@@ -115,6 +122,27 @@ public class SecureStorage extends Plugin {
     });
   }
 
+  @PluginMethod
+  public void internalGetOldPluginItem(final PluginCall call) {
+    String key = getKeyParam(call);
+
+    if (key == null) {
+      return;
+    }
+
+    tryStorageOp(call, () -> {
+      String data = getOldPluginDataFromKeyStore(key);
+      JSObject result = new JSObject();
+      result.put("data", data != null ? data : JSObject.NULL);
+      call.resolve(result);
+    });
+  }
+
+  private SharedPreferences getOldPrefs() {
+    return getContext()
+      .getSharedPreferences(OLD_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+  }
+
   private SharedPreferences getPrefs() {
     return getContext()
       .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
@@ -142,6 +170,23 @@ public class SecureStorage extends Plugin {
 
     if (data != null) {
       return decryptString(data, prefixedKey);
+    } else {
+      return null;
+    }
+  }
+
+  private String getOldPluginDataFromKeyStore(String prefixedKey)
+    throws KeyStoreException, GeneralSecurityException, IOException {
+    SharedPreferences sharedPreferences = getOldPrefs();
+    String encryptedData = sharedPreferences.getString(
+      "fing" + prefixedKey,
+      null
+    );
+
+    String iv = sharedPreferences.getString("fing_iv" + prefixedKey, null);
+
+    if (encryptedData != null && iv != null) {
+      return decryptOldPluginString(encryptedData, iv, prefixedKey);
     } else {
       return null;
     }
@@ -284,6 +329,30 @@ public class SecureStorage extends Plugin {
 
     byte[] decryptedData = cipher.doFinal(encryptedData);
     return new String(decryptedData, StandardCharsets.UTF_8);
+  }
+
+  private String decryptOldPluginString(
+    String encryptedData,
+    String iv,
+    String prefixedKey
+  ) throws GeneralSecurityException, IOException, KeyStoreException {
+    byte[] encryptedBytes = Base64.decode(encryptedData, Base64.DEFAULT);
+    byte[] ivBytes = Base64.decode(iv, Base64.DEFAULT);
+
+    KeyStore keyStore = getKeyStore();
+    KeyStore.SecretKeyEntry secretKeyEntry =
+      (KeyStore.SecretKeyEntry) keyStore.getEntry(OLD_KEY_ID, null);
+
+    if (secretKeyEntry == null) {
+      return null;
+    }
+
+    SecretKey secretKey = secretKeyEntry.getSecretKey();
+    Cipher cipher = Cipher.getInstance(OLD_CIPHER_TRANSFORMATION);
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(ivBytes));
+
+    byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+    return new String(decryptedBytes, StandardCharsets.UTF_8);
   }
 
   private SecretKey getSecretKey(String prefixedKey)
