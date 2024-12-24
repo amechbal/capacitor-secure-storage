@@ -284,4 +284,19 @@ export interface SecureStoragePlugin extends WebPlugin {
    * @throw StorageError
    */
   clear: (sync?: boolean) => Promise<void>
+
+  /**
+   * Migration method for com.cordova.plugin.android.fingerprintauth v3
+   * Gets and Decrypts data previously stored using com.cordova.plugin.android.fingerprintauth
+   * It looks up data for a given prefixed key.
+   *
+   * If the retrieved data is in the form of an ISO 8601 date string and
+   * `convertDate` is true (the default), it is converted to a `Date`.
+   *
+   * If no item with the given key can be found, null is returned.
+   *
+   * @since ?.?.?
+   * @throw StorageError
+   */
+  getOldPluginItem: (key: string) => Promise<string | null>
 }

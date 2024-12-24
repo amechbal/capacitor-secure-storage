@@ -13,6 +13,7 @@ export class SecureStorageNative extends SecureStorageBase {
     /* eslint-disable @typescript-eslint/unbound-method */
     this.setSynchronizeKeychain = proxy.setSynchronizeKeychain
     this.internalGetItem = proxy.internalGetItem
+    this.internalGetOldPluginItem = proxy.internalGetOldPluginItem
     this.internalSetItem = proxy.internalSetItem
     this.internalRemoveItem = proxy.internalRemoveItem
     this.clearItemsWithPrefix = proxy.clearItemsWithPrefix
@@ -33,6 +34,14 @@ export class SecureStorageNative extends SecureStorageBase {
   protected async internalGetItem(options: {
     prefixedKey: string
     sync: boolean
+  }): Promise<{ data: string }> {
+    return Promise.resolve({ data: '' })
+  }
+
+  // @native
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async internalGetOldPluginItem(options: {
+    prefixedKey: string
   }): Promise<{ data: string }> {
     return Promise.resolve({ data: '' })
   }
