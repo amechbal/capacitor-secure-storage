@@ -41,6 +41,45 @@ public class SecureStorage: CAPPlugin {
     })
   }
 
+  /**
+   * Retrieves an item from the old plugin's keychain storage.
+   *
+   * - Parameter call: The CAPPluginCall object containing the key to retrieve.
+   */
+  @objc func internalGetOldPluginItem(_ call: CAPPluginCall) {
+    CAPLog.print("internalGetOldPluginItem called with call: \(call)")
+      guard let key = call.getString("key") else {
+          CAPLog.print("Error: key is missing")
+          call.reject("Must provide a key")
+          return
+      }
+      
+      let service = "TouchIDKey" // or whatever the old plugin used
+      let account = key
+      let keychainItemID = "com.apple.dts.KeychainUI";
+      
+      let query: [String: Any] = [
+          kSecClass as String: kSecClassGenericPassword,
+          kSecAttrGeneric as String : keychainItemID,
+          //kSecAttrService as String: service, // Not used by cordova-plugin-keychain-touch-id !!
+          //kSecAttrAccount as String: account, // Not used by cordova-plugin-keychain-touch-id !!
+          kSecReturnData as String: true,
+          kSecMatchLimit as String: kSecMatchLimitOne
+      ]
+      
+      var item: CFTypeRef?
+      let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+      if status == errSecSuccess, let data = item as? Data {
+          let value = String(data: data, encoding: .utf8) ?? ""
+          call.resolve([
+              "data": value
+          ])
+      } else {
+          call.reject("Keychain entry not found or error: \(status)")
+      }
+  }
+
   @objc func internalRemoveItem(_ call: CAPPluginCall) {
     guard let key = getKeyParam(from: call) else {
       return
