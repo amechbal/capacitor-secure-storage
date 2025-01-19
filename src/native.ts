@@ -41,7 +41,7 @@ export class SecureStorageNative extends SecureStorageBase {
   // @native
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async internalGetOldPluginItem(options: {
-    prefixedKey: string
+    key: string
   }): Promise<{ data: string }> {
     return Promise.resolve({ data: '' })
   }

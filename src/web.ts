@@ -21,11 +21,11 @@ export class SecureStorageWeb extends SecureStorageBase {
   // @native
   // eslint-disable-next-line
   protected async internalGetOldPluginItem(options: {
-    prefixedKey: string
+    key: string
   }): Promise<{ data: string | null }> {
     console.warn('internalGetOldPluginItem is native only')
     return {
-      data: `Looking up key : ${options.prefixedKey} ... Sorry ! Testing in browser is not supported.`,
+      data: `Looking up key : ${options.key} ... Sorry ! Testing in browser is not supported.`,
     }
   }
 
