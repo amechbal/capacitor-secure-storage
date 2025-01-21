@@ -50,7 +50,7 @@ public class SecureStorage: CAPPlugin {
     CAPLog.print("internalGetOldPluginItem called with call: \(call)")
       guard let key = call.getString("key") else {
           CAPLog.print("Error: key is missing")
-          call.reject("Must provide a key")
+          call.reject("Key not provided")
           return
       }
       
@@ -75,8 +75,16 @@ public class SecureStorage: CAPPlugin {
           call.resolve([
               "data": value
           ])
+      } else if status == errSecItemNotFound {
+        // Handle the case where the item is not found
+        CAPLog.print("Item not found")
+        call.resolve([
+              "data": NSNull()
+          ])
       } else {
-          call.reject("Keychain entry not found or error: \(status)")
+          // Handle other potential errors
+          CAPLog.print("Error: \(status)")
+          call.reject("Error: \(status)")
       }
   }
 
