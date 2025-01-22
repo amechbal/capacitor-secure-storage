@@ -21,7 +21,7 @@ export interface SecureStoragePluginNative {
   }) => Promise<{ data: string }>
 
   internalGetOldPluginItem: (options: {
-    key: string
+    prefixedKey: string
   }) => Promise<{ data: string }>
 
   internalSetItem: (options: {
@@ -148,7 +148,7 @@ export abstract class SecureStorageBase
     if (key) {
       const { data } = await this.tryOperation(async () =>
         this.internalGetOldPluginItem({
-          key,
+          prefixedKey: key,
         }),
       )
 
@@ -160,7 +160,7 @@ export abstract class SecureStorageBase
 
   // @native
   protected abstract internalGetOldPluginItem(options: {
-    key: string
+    prefixedKey: string
   }): Promise<{ data: string | null }>
 
   async set(
