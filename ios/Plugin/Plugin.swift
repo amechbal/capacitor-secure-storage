@@ -48,14 +48,15 @@ public class SecureStorage: CAPPlugin {
    */
   @objc func internalGetOldPluginItem(_ call: CAPPluginCall) {
     CAPLog.print("internalGetOldPluginItem called with call: \(call)")
-      guard let key = call.getString("key") else {
-          CAPLog.print("Error: key is missing")
-          call.reject("Key not provided")
-          return
-      }
+      // Not used by cordova-plugin-keychain-touch-id !!
+      // guard let key = call.getString("key") else {
+      //     CAPLog.print("Error: key is missing")
+      //     call.reject("Key not provided")
+      //     return
+      // }
       
-      let service = "TouchIDKey" // or whatever the old plugin used
-      let account = key
+      // let service = "TouchIDKey" // Not used by cordova-plugin-keychain-touch-id !!
+      // let account = key          // Not used by cordova-plugin-keychain-touch-id !!
       let keychainItemID = "com.apple.dts.KeychainUI";
       
       let query: [String: Any] = [
